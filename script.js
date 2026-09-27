@@ -1,4 +1,3 @@
-// ===== بيانات المسارات =====
 const tracksData = {
     "1bac": {
         "sc-math": {
@@ -192,12 +191,9 @@ const tracksData = {
     }
 };
 
-// ===== متغيرات عامة =====
 let currentUser = null;
 
-// ===== عند فتح الصفحة =====
 window.addEventListener('DOMContentLoaded', () => {
-    // لو الصفحة الرئيسية
     const levelSelect = document.getElementById('level');
     if (levelSelect) {
         levelSelect.addEventListener('change', () => {
@@ -214,8 +210,6 @@ window.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-
-    // لو لوحة التحكم
     if (document.getElementById('subjectsList')) {
         const saved = localStorage.getItem('bacUser');
         if (saved) {
@@ -225,28 +219,21 @@ window.addEventListener('DOMContentLoaded', () => {
             window.location.href = 'index.html';
         }
     }
-
-    // الوضع الليلي
     if (localStorage.getItem('dark') === 'true') {
         document.body.classList.add('dark');
     }
 });
 
-// ===== بدء التتبع =====
 function startTracking() {
     const level = document.getElementById('level').value;
     const track = document.getElementById('track').value;
     const name = document.getElementById('name').value.trim();
-    if (!level || !track || !name) {
-        alert('من فضلك أكمل كل البيانات');
-        return;
-    }
+    if (!level || !track || !name) { alert('من فضلك أكمل كل البيانات'); return; }
     currentUser = { name, level, track, progress: {}, grades: {} };
     localStorage.setItem('bacUser', JSON.stringify(currentUser));
     window.location.href = 'dashboard.html';
 }
 
-// ===== تحميل لوحة التحكم =====
 function loadDashboard() {
     document.getElementById('userName').textContent = currentUser.name;
     document.getElementById('userTrack').textContent = tracksData[currentUser.level][currentUser.track].name;
@@ -256,7 +243,6 @@ function loadDashboard() {
     updateTotalProgress();
 }
 
-// ===== عرض المواد =====
 function renderSubjects() {
     const list = document.getElementById('subjectsList');
     const subjects = tracksData[currentUser.level][currentUser.track].subjects;
@@ -288,24 +274,18 @@ function renderSubjects() {
 
 function setProgress(i, v) {
     currentUser.progress[i] = parseInt(v);
-    save();
-    renderSubjects();
-    updateTotalProgress();
+    save(); renderSubjects(); updateTotalProgress();
 }
 
 function updateTotalProgress() {
     const subjects = tracksData[currentUser.level][currentUser.track].subjects;
     let tw = 0, tc = 0;
-    subjects.forEach((s, i) => {
-        tw += (currentUser.progress[i] || 0) * s.coeff;
-        tc += s.coeff;
-    });
-    const total = Math.round(tw / tc);
-    document.getElementById('totalProgress').textContent = total + '%';
-    document.getElementById('totalProgressBar').style.width = total + '%';
+    subjects.forEach((s, i) => { tw += (currentUser.progress[i]||0)*s.coeff; tc += s.coeff; });
+    const total = Math.round(tw/tc);
+    document.getElementById('totalProgress').textContent = total+'%';
+    document.getElementById('totalProgressBar').style.width = total+'%';
 }
 
-// ===== حاسبة المعدل =====
 function renderGradeCalc() {
     const calc = document.getElementById('gradeCalculator');
     const subjects = tracksData[currentUser.level][currentUser.track].subjects;
@@ -322,76 +302,54 @@ function renderGradeCalc() {
     });
 }
 
-function setGrade(i, v) {
-    currentUser.grades[i] = parseFloat(v);
-    save();
-}
+function setGrade(i, v) { currentUser.grades[i] = parseFloat(v); save(); }
 
 function calculateAverage() {
     const subjects = tracksData[currentUser.level][currentUser.track].subjects;
-    let tw = 0, tc = 0, ok = true;
-    subjects.forEach((s, i) => {
+    let tw=0, tc=0, ok=true;
+    subjects.forEach((s,i) => {
         const g = currentUser.grades[i];
-        if (g === undefined || g === null || isNaN(g)) ok = false;
-        else { tw += g * s.coeff; tc += s.coeff; }
+        if (g===undefined||g===null||isNaN(g)) ok=false;
+        else { tw+=g*s.coeff; tc+=s.coeff; }
     });
     const res = document.getElementById('averageResult');
-    if (!ok) { res.innerHTML = '<span style="color:var(--warning)">⚠️ أدخل كل الدرجات</span>'; return; }
-    const avg = (tw / tc).toFixed(2);
-    let msg = '', c = '';
-    if (avg >= 16) { msg = 'ممتاز! 🌟'; c = 'var(--success)'; }
-    else if (avg >= 14) { msg = 'جيد جداً 👍'; c = 'var(--success)'; }
-    else if (avg >= 12) { msg = 'جيد 👌'; c = 'var(--primary)'; }
-    else if (avg >= 10) { msg = 'مقبول ⚠️'; c = 'var(--warning)'; }
-    else { msg = 'تحتاج مجهود أكتر 💪'; c = 'var(--danger)'; }
+    if (!ok) { res.innerHTML='<span style="color:var(--warning)">⚠️ أدخل كل الدرجات</span>'; return; }
+    const avg = (tw/tc).toFixed(2);
+    let msg='', c='';
+    if (avg>=16) { msg='ممتاز! 🌟'; c='var(--success)'; }
+    else if (avg>=14) { msg='جيد جداً 👍'; c='var(--success)'; }
+    else if (avg>=12) { msg='جيد 👌'; c='var(--primary)'; }
+    else if (avg>=10) { msg='مقبول ⚠️'; c='var(--warning)'; }
+    else { msg='تحتاج مجهود أكتر 💪'; c='var(--danger)'; }
     res.innerHTML = `<span style="color:${c}">المعدل: ${avg}/20 — ${msg}</span>`;
 }
 
-// ===== الشات بوت =====
-const GEMINI_KEY = 'YOUR_API_KEY_HERE';
-
+// ===== الشات بوت (بدون API Key - مجاني للأبد) =====
 const botPrompts = {
-    arabic: 'أنت مساعد ذكي متخصص في اللغة العربية لطلاب البكالوريا المغربية. ساعد في شرح الدروس (نصوص، نحو، صرف، بلاغة)، حل التمارين، ونصائح الامتحان. أجب بالعربية المبسطة.',
-    english: 'You are a smart assistant for Moroccan Baccalaureate English students. Help with lessons, grammar, vocabulary, reading comprehension, writing tips, and exam preparation. Answer in clear simple English.',
-    history: 'أنت مساعد ذكي متخصص في التاريخ الوطني والجغرافيا لطلاب البكالوريا المغربية. ساعد في شرح الدروس، تحليل الوثائق، حفظ التواريخ والأحداث، والمفاهيم الجغرافية. أجب بالعربية بشكل منظم.',
-    specialty: 'أنت مساعد ذكي متخصص في هندسة المادة لطلاب البكالوريا المغربية (مسار العلوم والتكنولوجيات الميكانيكية). ساعد في شرح دروس هندسة المادة (خواص المواد، المعالجات الحرارية، السبائك، البوليمرات، السيراميك، الاختبارات الميكانيكية)، حل التمارين والمسائل، ونصائح الامتحان. أجب بالعربية مع المصطلحات العلمية.'
+    arabic: 'أنت مساعد ذكي متخصص في اللغة العربية لطلاب البكالوريا المغربية. ساعد في شرح الدروس والنحو والصرف والبلاغة وحل التمارين. أجب بالعربية المبسطة.',
+    english: 'You are a smart assistant for Moroccan Baccalaureate English students. Help with grammar, vocabulary, reading, writing, and exam prep. Answer in simple English.',
+    history: 'أنت مساعد ذكي متخصص في التاريخ الوطني والجغرافيا لطلاب البكالوريا المغربية. ساعد في شرح الدروس وتحليل الوثائق وحفظ التواريخ. أجب بالعربية.',
+    specialty: 'أنت مساعد ذكي متخصص في هندسة المادة لطلاب البكالوريا المغربية. ساعد في شرح خواص المواد والمعالجات الحرارية والسبائك والبوليمرات والسيراميك والاختبارات الميكانيكية. أجب بالعربية.'
 };
 
 async function sendMessage() {
     const input = document.getElementById('chatInput');
     const text = input.value.trim();
     if (!text) return;
-
     addChatMsg(text, 'user');
     input.value = '';
     showTyping();
-
     try {
         const subject = document.getElementById('chatSubject').value;
         const prompt = botPrompts[subject];
-
-        const res = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`,
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt + '\n\nسؤال الطالب: ' + text }] }]
-                })
-            }
-        );
-
-        const data = await res.json();
+        const fullPrompt = prompt + '\n\nسؤال الطالب: ' + text;
+        const res = await fetch('https://text.pollinations.ai/' + encodeURIComponent(fullPrompt));
+        const answer = await res.text();
         removeTyping();
-
-        if (data.candidates && data.candidates[0]) {
-            addChatMsg(data.candidates[0].content.parts[0].text, 'bot');
-        } else {
-            addChatMsg('عذراً، حصل خطأ. حاول تاني.', 'bot');
-        }
+        addChatMsg(answer, 'bot');
     } catch (e) {
         removeTyping();
-        addChatMsg('عذراً، مشكلة في الاتصال. تأكد من API Key.', 'bot');
+        addChatMsg('عذراً، حصل خطأ. حاول تاني.', 'bot');
     }
 }
 
@@ -399,8 +357,7 @@ function addChatMsg(text, who) {
     const c = document.getElementById('chatContainer');
     const d = document.createElement('div');
     d.className = 'chat-message ' + who;
-    const formatted = text.replace(/\n/g, '<br>');
-    d.innerHTML = `<div class="message-content">${formatted}</div>`;
+    d.innerHTML = `<div class="message-content">${text.replace(/\n/g,'<br>')}</div>`;
     c.appendChild(d);
     c.scrollTop = c.scrollHeight;
 }
@@ -420,16 +377,11 @@ function removeTyping() {
     if (t) t.remove();
 }
 
-// ===== أدوات مساعدة =====
-function save() {
-    localStorage.setItem('bacUser', JSON.stringify(currentUser));
-}
-
+function save() { localStorage.setItem('bacUser', JSON.stringify(currentUser)); }
 function toggleDarkMode() {
     document.body.classList.toggle('dark');
     localStorage.setItem('dark', document.body.classList.contains('dark'));
 }
-
 function logout() {
     if (confirm('متأكد تخرج؟')) {
         localStorage.removeItem('bacUser');
